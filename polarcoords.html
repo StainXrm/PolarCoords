@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>polarCoordinaten</title>
+</head>
+
+<body>
+    <div id="headerbar">
+        <h3>polarCoordinaten Sandkasten</h3>
+        <p>Mausklick schaltet den Orbitalpfad</p>
+    </div>
+    <canvas id="PolarCanvas"></canvas>
+</body>
+
+</html>
+
+<style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Comfortaa&display=swap');
+    * {
+        padding: 0;
+        margin: 0;
+    }
+    
+    body {
+        background-color: rgb(50, 50, 50);
+        background: linear-gradient(240deg, rgb(34, 34, 34) 50%, rgb(0, 0, 0) 100%);
+        overflow: hidden;
+    }
+    
+    #headerbar {
+        font-family: 'Comfortaa', cursive;
+        color: white;
+        text-transform: uppercase;
+        position: absolute;
+        top: 10%;
+        left: 10%;
+        pointer-events: none;
+        line-height: 2rem;
+        font-size: 1.5rem;
+    }
+    
+    p {
+        font-size: 1rem;
+    }
+</style>
+
+<script type="text/javascript">
+    var showOrbits = true;
+    var orbitOpacity = 0;
+    var polarcanvas = document.getElementById("PolarCanvas");
+    var ctx = polarcanvas.getContext("2d");
+
+    window.onresize = initCanvas;
+    initCanvas();
+
+    function initCanvas() {
+        polarcanvas.width = document.documentElement.clientWidth;
+        polarcanvas.height = document.documentElement.clientHeight;
+        polarcanvas.centerX = polarcanvas.width / 4 * 3;
+        polarcanvas.centerY = polarcanvas.height / 2;
+        ctx.translate(polarcanvas.centerX, polarcanvas.centerY);
+    }
+
+    polarcanvas.addEventListener('click', function() {
+        showOrbits = !showOrbits;
+    }, false);
+
+
+    /* Erstmal sorgen wir für Licht! */
+    var sun = new Planet(80, 0, 'yellow');
+
+    /* Gut, jetzt ein paar Planeten */
+    var mercury = new Planet(1, sun.size + 12, 'grey');
+    var venus = new Planet(4, sun.size + 28, 'brown');
+    var earth = new Planet(4, sun.size + 40, 'green');
+    var mars = new Planet(3, sun.size + 60, 'red');
+    var jupiter = new Planet(8, sun.size + 200, 'white');
+    var saturn = new Planet(5, sun.size + 240, 'orange');
+    var uranus = new Planet(4, sun.size + 380, 'cyan');
+    var neptun = new Planet(4, sun.size + 600, 'blue');
+
+    requestAnimationFrame(animate);
+
+    function animate(currentTime) {
+        ctx.clearRect(-polarcanvas.width / 4 * 3, -polarcanvas.height / 2, polarcanvas.width, polarcanvas.height);
+        sun.draw();
+
+        if (orbitOpacity < 0.1 && showOrbits) orbitOpacity += 0.005;
+        if (orbitOpacity > 0 && !showOrbits) orbitOpacity -= 0.005;
+
+        mercury.draw();
+        venus.draw();
+        earth.draw();
+        mars.draw();
+        jupiter.draw();
+        saturn.draw();
+        uranus.draw();
+        neptun.draw();
+
+        requestAnimationFrame(animate);
+    }
+
+    /* Hier erschaffen wir einen ganzen Planeten */
+    function Planet(size, orbitalradius, color) {
+        this.size = size;
+        this.orbitalradius = orbitalradius;
+        this.color = color;
+        this.angle = Math.random() * Math.PI;
+        if (this.orbitalradius) this.velocity = (0.1 / orbitalradius) * 4;
+        console.log(this.velocity);
+        this.draw = function() {
+            if (this.orbitalradius) this.angle = this.angle - this.velocity;
+            this.coord = polarCoord(this.orbitalradius, this.angle, 0, 0);
+            if (this.orbitalradius) { //draw the orbit
+                ctx.shadowColor = "rgba(255,255,255," + orbitOpacity + ")";
+                ctx.beginPath();
+                ctx.arc(0, 0, this.orbitalradius, 0, 2 * Math.PI);
+                ctx.strokeStyle = "rgba(255,255,255," + orbitOpacity + ")";
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.arc(this.coord.X, this.coord.Y, this.size, 0, 2 * Math.PI);
+            ctx.shadowBlur = this.size / 10;
+            ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+    }
+
+    /* Hier berechnen wir einen Orbit */
+    function polarCoord(r, a, ox, oy) {
+        let x = r * Math.cos(a);
+        let y = r * Math.sin(a);
+        let coords = {
+            "X": ox + x,
+            "Y": oy + y
+        };
+        return coords;
+    }
+</script>
